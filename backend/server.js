@@ -1,3 +1,5 @@
+const requestRoutes = require('./routes/requestRoutes');
+const inventoryRoutes = require('./routes/inventoryRoutes');
 require('./config/env');
 
 const express = require('express');
@@ -16,6 +18,8 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/rooms', roomRoutes);
+app.use('/api/requests', requestRoutes);
+//app.use('/api/inventory', inventoryRoutes);
 
 const startServer = async () => {
   try {
