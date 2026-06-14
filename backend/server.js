@@ -1,12 +1,10 @@
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const requestRoutes = require('./routes/requestRoutes');
-const inventoryRoutes = require('./routes/inventoryRoutes');
 require('./config/env');
 
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const roomRoutes = require('./routes/roomRoutes');
+const maintenanceRoutes = require('./routes/maintenanceRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,10 +17,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/rooms', roomRoutes);
-app.use('/api/requests', requestRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-//app.use('/api/inventory', inventoryRoutes);
-
+app.use('/api/maintenance', maintenanceRoutes);
 const startServer = async () => {
   try {
     await connectDB();
