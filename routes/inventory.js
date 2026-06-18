@@ -1,11 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const Inventory = require('../models/Inventory');
+const ActivityLog = require('../models/ActivityLog');
 
-// GET all inventory
+// GET all inventory with search & filters
 router.get('/', async (req, res) => {
   try {
-    const items = await Inventory.find();
+    const { search, category, minQty, maxQty } = req.query;
+    let filter = {};
+
+    if (search) {
+      filter.name = { $regex: search, $options: 'i' };
+    }
+    if (category) {
+      filter.category = category;
+    }
+    if (minQty || maxQty) {
+      filter.quantity = {};
+      if (minQty) filter.quantity.$gte = Number(minQty);
+      if (maxQty) filter.quantity.$lte = Number(maxQty);
+    }
+
+    const items = await Inventory.find(filter);
     res.json(items);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -24,9 +40,10 @@ router.get('/:id', async (req, res) => {
 
 // POST create item
 router.post('/', async (req, res) => {
-  try {
+try {
     const item = new Inventory(req.body);
     const saved = await item.save();
+    await ActivityLog.create({ action: 'CREATED', itemId: saved._id, itemName: saved.name, details: `Item created with quantity ${saved.quantity}` });
     res.status(201).json(saved);
   } catch (err) {
     res.status(400).json({ message: err.message });

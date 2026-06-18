@@ -11,8 +11,13 @@ console.log(process.env.MONGO_URI);
 // Routes
 const inventoryRoutes = require('./routes/inventory');
 const stockRoutes = require('./routes/stock');
+const activityLogRoutes = require('./routes/activitylog');
+const uploadRoutes = require('./routes/upload');
 
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/uploads', express.static('uploads'));
+app.use('/api/logs', activityLogRoutes);
 app.use('/api/stock', stockRoutes);
 
 // Connect to MongoDB
