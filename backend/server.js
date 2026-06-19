@@ -9,13 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
-
-
-const maintenanceRoutes = require('./routes/maintenanceRoutes');
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const notificationRoutes = require('./routes/notificationRoutes');
-const dashboardRoutes = require('./routes/dashboardRoutes');
+const requestRoutes = require('./routes/requestRoutes');
 
 
 const app = express();
