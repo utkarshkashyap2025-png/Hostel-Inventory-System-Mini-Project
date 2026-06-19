@@ -5,6 +5,8 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const roomRoutes = require('./routes/roomRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
@@ -16,6 +18,8 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+console.log("JWT_SECRET =", process.env.JWT_SECRET);
 
 app.use(cors());
 app.use(express.json());
