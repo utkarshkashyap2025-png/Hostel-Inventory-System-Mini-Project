@@ -1,12 +1,10 @@
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const requestRoutes = require('./routes/requestRoutes');
-const inventoryRoutes = require('./routes/inventoryRoutes');
 require('./config/env');
 
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const roomRoutes = require('./routes/roomRoutes');
+const maintenanceRoutes = require('./routes/maintenanceRoutes');
 
 
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
