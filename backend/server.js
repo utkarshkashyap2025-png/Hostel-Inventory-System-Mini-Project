@@ -10,7 +10,8 @@ const userRoutes = require('./routes/userRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const requestRoutes = require('./routes/requestRoutes');
-const inventoryRoutes = require('../routes/inventory');
+const inventoryRoutes = require('./routes/inventory');
+const stockRoutes = require('./routes/stock');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +33,7 @@ app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/stock', stockRoutes);
 
 const startServer = async () => {
   try {
