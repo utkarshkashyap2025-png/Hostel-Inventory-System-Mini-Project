@@ -4,6 +4,16 @@ const router = express.Router();
 const Inventory = require('../models/Inventory');
 const Transaction = require('../models/Transaction');
 
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+console.log("Gemini Key =", process.env.GEMINI_API_KEY);
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash"
+});
+
 router.get('/predict-stock', async (req, res) => {
   try {
     const items = await Inventory.find();
@@ -162,4 +172,26 @@ router.get('/insights', async (req, res) => {
   }
 });
 
-module.exports = router;
+
+router.post('/chat', async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    const result = await model.generateContent(
+      `You are an AI assistant for a Hostel Inventory Management System.
+       User Question: ${message}`
+    );
+
+    const reply = result.response.text();
+
+    res.json({ reply });
+
+  } catch (err) {
+    res.status(500).json({
+      message: err.message
+    });
+  }
+});
+
+
+module.exports = router;        
