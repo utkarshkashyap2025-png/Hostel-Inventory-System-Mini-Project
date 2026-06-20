@@ -10,7 +10,7 @@ const userRoutes = require('./routes/userRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const requestRoutes = require('./routes/requestRoutes');
-
+const inventoryRoutes = require('../routes/inventory');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,7 +27,7 @@ app.get('/', (req, res) => {
 app.use('/api/rooms', roomRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-//app.use('/api/inventory', inventoryRoutes);
+app.use('/api/inventory', inventoryRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
