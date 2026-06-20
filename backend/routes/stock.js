@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Inventory = require('../models/Inventory')
 const Transaction = require('../models/Transaction')
+const ActivityLog = require('../models/ActivityLog');
 
 // Stock IN
 router.post('/in', async (req, res) => {
@@ -12,6 +13,8 @@ router.post('/in', async (req, res) => {
     await item.save();
     const transaction = new Transaction({ inventoryId, type: 'IN', quantity, note });
     await transaction.save();
+    await ActivityLog.create({ action: 'STOCK_IN', itemId: inventoryId, itemName: item.name, details: `Stock IN of quantity ${quantity}. Note: ${note}` });
+
     res.json({ message: 'Stock added', item });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -30,6 +33,7 @@ router.post('/out', async (req, res) => {
     await item.save();
     const transaction = new Transaction({ inventoryId, type: 'OUT', quantity, note });
     await transaction.save();
+    await ActivityLog.create({ action: 'STOCK_OUT', itemId: inventoryId, itemName: item.name, details: `Stock OUT of quantity ${quantity}. Note: ${note}` });
     res.json({ message: 'Stock removed', item });
   } catch (err) {
     res.status(500).json({ message: err.message });
