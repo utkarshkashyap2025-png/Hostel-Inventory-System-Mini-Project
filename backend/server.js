@@ -13,6 +13,7 @@ const requestRoutes = require('./routes/requestRoutes');
 const inventoryRoutes = require('./routes/inventory');
 const stockRoutes = require('./routes/stock');
 const activityLogRoutes = require('./routes/activitylog')
+const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,6 +37,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/activitylogs', activityLogRoutes);
+app.use('/api/ai', aiRoutes);
 
 const startServer = async () => {
   try {
