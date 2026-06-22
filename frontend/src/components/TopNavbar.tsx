@@ -15,6 +15,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { PageView } from '../types';
+import { useAppState } from '../AppContext';
 
 interface TopNavbarProps {
   currentView: PageView;
@@ -27,6 +28,15 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   onOpenSidebar,
   onQuickAction,
 }) => {
+  const {
+    notifications,
+    refreshAllData,
+    markNotificationAsRead,
+    clearAllNotifications,
+  } = useAppState();
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
   const [time, setTime] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -49,9 +59,23 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
     return () => clearInterval(interval);
   }, []);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 800);
+    try {
+      await refreshAllData();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const formatNotificationTime = (createdAt: string) => {
+    const date = new Date(createdAt);
+    return date.toLocaleString([], {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const getPageTitle = (view: PageView) => {
@@ -167,7 +191,9 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
             className="relative cursor-pointer rounded-lg border border-ivory bg-white p-2 text-blue-gray-medium hover:bg-warm-white hover:text-charcoal"
           >
             <Bell className="h-4 w-4" />
-            <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-gold-accent"></span>
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-gold-accent"></span>
+            )}
           </button>
 
           {showNotifications && (
@@ -180,27 +206,41 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
                 <div className="flex items-center justify-between border-b border-ivory pb-2">
                   <h3 className="text-xs font-bold text-charcoal">Push Notifications</h3>
                   <button
-                    onClick={() => setShowNotifications(false)}
+                    onClick={() => {
+                      clearAllNotifications();
+                      setShowNotifications(false);
+                    }}
                     className="text-[10px] text-blue-gray-medium hover:text-charcoal font-semibold"
                   >
                     Clear all
                   </button>
                 </div>
-                <div className="mt-2 space-y-2">
-                  <div className="flex gap-2 rounded-lg p-1.5 text-xs hover:bg-warm-white/60">
-                    <span className="h-2 w-2 mt-1.5 shrink-0 rounded-full bg-gold-accent"></span>
-                    <div>
-                      <p className="font-semibold text-charcoal">Milk supply is low (28 L)</p>
-                      <span className="font-mono text-[9px] text-blue-gray-medium/70">10 mins ago</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 rounded-lg p-1.5 text-xs hover:bg-warm-white/60">
-                    <span className="h-2 w-2 mt-1.5 shrink-0 rounded-full bg-blue-gray-medium"></span>
-                    <div>
-                      <p className="font-semibold text-charcoal">Room C-101 allocated to Rohan Sharma</p>
-                      <span className="font-mono text-[9px] text-blue-gray-medium/70">1 hour ago</span>
-                    </div>
-                  </div>
+                <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <p className="text-xs text-blue-gray-medium px-1.5 py-2">No notifications yet.</p>
+                  ) : (
+                    notifications.map((notification) => (
+                      <button
+                        key={notification.id}
+                        type="button"
+                        onClick={() => markNotificationAsRead(notification.id)}
+                        className="flex w-full gap-2 rounded-lg p-1.5 text-left text-xs hover:bg-warm-white/60"
+                      >
+                        <span
+                          className={`h-2 w-2 mt-1.5 shrink-0 rounded-full ${
+                            notification.isRead ? 'bg-blue-gray-medium/40' : 'bg-gold-accent'
+                          }`}
+                        ></span>
+                        <div>
+                          <p className="font-semibold text-charcoal">{notification.title}</p>
+                          <p className="text-blue-gray-medium">{notification.message}</p>
+                          <span className="font-mono text-[9px] text-blue-gray-medium/70">
+                            {formatNotificationTime(notification.createdAt)}
+                          </span>
+                        </div>
+                      </button>
+                    ))
+                  )}
                 </div>
               </div>
             </>

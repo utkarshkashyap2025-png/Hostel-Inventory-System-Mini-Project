@@ -5,12 +5,16 @@ const {
   getAllRequests,
   approveRequest,
   rejectRequest,
-} = require('../controllers/requestController');
+  updateRequest,
+  deleteRequest,
+} = require('../controllers/requestcontroller');
 
 const router = express.Router();
 
 router.post('/', createRequest);
 router.get('/', getAllRequests);
+router.put('/:id', updateRequest);
+router.delete('/:id', deleteRequest);
 router.put('/:id/approve', approveRequest);
 router.put('/:id/reject', rejectRequest);
 

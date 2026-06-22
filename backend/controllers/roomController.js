@@ -20,7 +20,7 @@ const getAllRooms = async (req, res) => {
 
 const createRoom = async (req, res) => {
   try {
-    const { roomNumber, block, floor, capacity, occupiedBeds, inventoryItems } =
+    const { roomNumber, block, floor, capacity, occupiedBeds, inventoryItems, status } =
       req.body;
 
     if (!roomNumber || !block || floor === undefined || capacity === undefined) {
@@ -37,6 +37,7 @@ const createRoom = async (req, res) => {
       capacity,
       occupiedBeds,
       inventoryItems,
+      status,
     });
 
     res.status(201).json({
@@ -148,9 +149,44 @@ const getRoomInventory = async (req, res) => {
   }
 };
 
+const deleteRoom = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const room = await Room.findByIdAndDelete(id);
+
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: 'Room not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Room deleted successfully',
+      data: room,
+    });
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid room ID',
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete room',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllRooms,
   createRoom,
   updateRoom,
+  deleteRoom,
   getRoomInventory,
 };

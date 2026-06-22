@@ -35,21 +35,28 @@ import { useAppState } from '../AppContext';
 import { MONTHLY_STU_INTAKE, REPLAY_TRENDS } from '../mockData';
 
 export const Dashboard: React.FC<{ setView: (view: any) => void }> = ({ setView }) => {
-  const { rooms, students, inventory, maintenance, systemLogs, currentUser } = useAppState();
+  const { rooms, students, inventory, maintenance, systemLogs, currentUser, dashboardStats } =
+    useAppState();
 
   const lowStockCount = inventory.filter((item) => item.goodCount <= (item.minRequired ?? 5)).length;
 
-  // 1. KPI Computations
-  const totalStudents = students.length;
-  const totalRooms = rooms.length;
+  // 1. KPI Computations (prefer backend dashboard stats when available)
+  const totalStudents = dashboardStats?.totalStudents ?? students.length;
+  const totalRooms = dashboardStats?.totalRooms ?? rooms.length;
   const occupiedBeds = rooms.reduce((acc, r) => acc + r.occupied, 0);
   const totalCapacity = rooms.reduce((acc, r) => acc + r.capacity, 0);
   const occupancyPercent = totalCapacity > 0 ? Math.round((occupiedBeds / totalCapacity) * 100) : 0;
-  
+
   const availableInventoryItems = inventory.reduce((acc, i) => acc + i.goodCount, 0);
-  const pendingRequests = maintenance.filter((m) => m.status === 'Pending').length;
-  const inProgressRequests = maintenance.filter((m) => m.status === 'In Progress').length;
-  const completedRequests = maintenance.filter((m) => m.status === 'Completed').length;
+  const pendingRequests =
+    dashboardStats?.pendingMaintenance ?? maintenance.filter((m) => m.status === 'Pending').length;
+  const inProgressRequests =
+    dashboardStats?.inProgressMaintenance ??
+    maintenance.filter((m) => m.status === 'In Progress').length;
+  const completedRequests =
+    dashboardStats?.completedMaintenance ??
+    maintenance.filter((m) => m.status === 'Completed').length;
+  const pendingHostelRequests = dashboardStats?.pendingRequests ?? 0;
 
   // 2. Room Availability Chart calculations (by Status)
   const roomStatusData = [
@@ -90,7 +97,7 @@ export const Dashboard: React.FC<{ setView: (view: any) => void }> = ({ setView 
       id: 'kpi-students',
       title: 'Total Students',
       value: totalStudents,
-      sub: `${students.filter((s) => s.roomNumber === null).length} unallotted`,
+      sub: `${students.filter((s) => s.roomNumber === null).length} unallotted · ${pendingHostelRequests} room requests pending`,
       icon: Users,
       color: 'bg-[#567A5E]/15 text-[#567A5E]',
       viewLink: 'students',

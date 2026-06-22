@@ -3,16 +3,66 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { Room, Student, InventoryItem, StockRecord, MaintenanceRequest, MessSupply, UserSession, Toast } from './types';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import {
-  INITIAL_ROOMS,
-  INITIAL_STUDENTS,
-  INITIAL_INVENTORY,
-  INITIAL_MAINTENANCE,
-  INITIAL_MESS,
-  INITIAL_STOCK_RECORDS,
-} from './mockData';
+  Room,
+  Student,
+  InventoryItem,
+  StockRecord,
+  MaintenanceRequest,
+  MessSupply,
+  UserSession,
+  Toast,
+  HostelRequest,
+  AppNotification,
+  DashboardStats,
+} from './types';
+import { INITIAL_MESS } from './mockData';
+import {
+  createRoom as createRoomApi,
+  deleteRoomApi,
+  fetchRooms,
+  mapApiRoomToRoom,
+  mapRoomToCreatePayload,
+  mapRoomToUpdatePayload,
+  updateRoomApi,
+} from './services/roomService';
+import {
+  createStudent as createStudentApi,
+  deleteStudentApi,
+  fetchStudents,
+  updateStudentApi,
+} from './services/studentService';
+import {
+  createInventoryItem as createInventoryItemApi,
+  createStockRecord as createStockRecordApi,
+  deleteInventoryItemApi,
+  deleteStockRecordApi,
+  fetchInventory,
+  fetchStockRecords,
+  updateInventoryItemApi,
+} from './services/inventoryService';
+import {
+  createMaintenanceRequest as createMaintenanceRequestApi,
+  deleteMaintenanceRequestApi,
+  fetchMaintenanceRequests,
+  updateMaintenanceRequestApi,
+} from './services/maintenanceService';
+import {
+  approveRequestApi,
+  createRequest as createRequestApi,
+  deleteRequestApi,
+  fetchRequests,
+  rejectRequestApi,
+  updateRequestApi,
+} from './services/requestService';
+import {
+  deleteNotificationApi,
+  fetchNotifications,
+  markNotificationRead,
+} from './services/notificationService';
+import { fetchDashboardStats } from './services/dashboardService';
+import { ApiError } from './services/api';
 
 interface AppContextType {
   rooms: Room[];
@@ -72,6 +122,19 @@ interface AppContextType {
   updateMessQuantity: (id: string, newQty: number) => void;
   deleteMessSupply: (id: string) => void;
   addLog: (action: string, type?: 'info' | 'warning' | 'success') => void;
+
+  requests: HostelRequest[];
+  notifications: AppNotification[];
+  dashboardStats: DashboardStats | null;
+  refreshAllData: () => Promise<void>;
+  addRequest: (req: Omit<HostelRequest, 'id' | 'status' | 'createdAt'>) => void;
+  updateRequest: (id: string, updates: Partial<HostelRequest>) => void;
+  approveRequest: (id: string) => void;
+  rejectRequest: (id: string) => void;
+  deleteRequest: (id: string) => void;
+  markNotificationAsRead: (id: string) => void;
+  deleteNotification: (id: string) => void;
+  clearAllNotifications: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -99,30 +162,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const [rooms, setRooms] = useState<Room[]>(() => {
-    const saved = localStorage.getItem('hostel_rooms');
-    return saved ? JSON.parse(saved) : INITIAL_ROOMS;
-  });
+  const [rooms, setRooms] = useState<Room[]>([]);
 
-  const [students, setStudents] = useState<Student[]>(() => {
-    const saved = localStorage.getItem('hostel_students');
-    return saved ? JSON.parse(saved) : INITIAL_STUDENTS;
-  });
+  const [students, setStudents] = useState<Student[]>([]);
 
-  const [inventory, setInventory] = useState<InventoryItem[]>(() => {
-    const saved = localStorage.getItem('hostel_inventory');
-    return saved ? JSON.parse(saved) : INITIAL_INVENTORY;
-  });
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
 
-  const [stockRecords, setStockRecords] = useState<StockRecord[]>(() => {
-    const saved = localStorage.getItem('hostel_stock_records');
-    return saved ? JSON.parse(saved) : INITIAL_STOCK_RECORDS;
-  });
+  const [stockRecords, setStockRecords] = useState<StockRecord[]>([]);
 
-  const [maintenance, setMaintenance] = useState<MaintenanceRequest[]>(() => {
-    const saved = localStorage.getItem('hostel_maintenance');
-    return saved ? JSON.parse(saved) : INITIAL_MAINTENANCE;
-  });
+  const [maintenance, setMaintenance] = useState<MaintenanceRequest[]>([]);
+
+  const [requests, setRequests] = useState<HostelRequest[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
 
   const [messSupplies, setMessSupplies] = useState<MessSupply[]>(() => {
     const saved = localStorage.getItem('hostel_mess');
@@ -183,27 +235,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [systemLogs, setSystemLogs] = useState<Array<{ id: string; action: string; time: string; type: 'info' | 'warning' | 'success' }>>([]);
 
-  // Sync to localStorage
-  useEffect(() => {
-    localStorage.setItem('hostel_rooms', JSON.stringify(rooms));
-  }, [rooms]);
-
-  useEffect(() => {
-    localStorage.setItem('hostel_students', JSON.stringify(students));
-  }, [students]);
-
-  useEffect(() => {
-    localStorage.setItem('hostel_inventory', JSON.stringify(inventory));
-  }, [inventory]);
-
-  useEffect(() => {
-    localStorage.setItem('hostel_stock_records', JSON.stringify(stockRecords));
-  }, [stockRecords]);
-
-  useEffect(() => {
-    localStorage.setItem('hostel_maintenance', JSON.stringify(maintenance));
-  }, [maintenance]);
-
+  // Sync to localStorage (module data loaded from backend)
   useEffect(() => {
     localStorage.setItem('hostel_mess', JSON.stringify(messSupplies));
   }, [messSupplies]);
@@ -262,6 +294,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
+
+  const refreshAllData = useCallback(async () => {
+    try {
+      const [
+        apiRooms,
+        studentData,
+        inventoryData,
+        stockData,
+        maintenanceData,
+        requestData,
+        notificationData,
+        statsData,
+      ] = await Promise.all([
+        fetchRooms(),
+        fetchStudents(),
+        fetchInventory(),
+        fetchStockRecords(),
+        fetchMaintenanceRequests(),
+        fetchRequests(),
+        fetchNotifications(),
+        fetchDashboardStats(),
+      ]);
+
+      setStudents(studentData);
+      setRooms(apiRooms.map((apiRoom) => mapApiRoomToRoom(apiRoom, studentData)));
+      setInventory(inventoryData);
+      setStockRecords(stockData);
+      setMaintenance(maintenanceData);
+      setRequests(requestData);
+      setNotifications(notificationData);
+      setDashboardStats(statsData);
+    } catch (error) {
+      const message =
+        error instanceof ApiError ? error.message : 'Failed to sync data from server.';
+      showToast(message, 'error');
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshAllData();
+  }, [refreshAllData]);
 
   const addLog = (action: string, type: 'info' | 'warning' | 'success' = 'info') => {
     const now = new Date();
@@ -349,15 +422,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Action Denied: Staff cannot add rooms.', 'error');
       return;
     }
-    const newRoom: Room = {
-      ...roomData,
-      id: `room_${Date.now()}`,
-      occupied: 0,
-      status: 'Available',
-    };
-    setRooms((prev) => [...prev, newRoom]);
-    addLog(`Room "${newRoom.roomNumber}" was created in database.`, 'success');
-    showToast(`Room ${newRoom.roomNumber} created successfully!`, 'success');
+
+    void (async () => {
+      try {
+        const created = await createRoomApi(mapRoomToCreatePayload(roomData));
+        const newRoom = mapApiRoomToRoom(created, students);
+        setRooms((prev) => [...prev, newRoom]);
+        addLog(`Room "${newRoom.roomNumber}" was created in database.`, 'success');
+        showToast(`Room ${newRoom.roomNumber} created successfully!`, 'success');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to create room.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const updateRoom = (updatedRoom: Room) => {
@@ -365,9 +443,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Action Denied: Staff cannot modify hostel details.', 'error');
       return;
     }
-    setRooms((prev) => prev.map((r) => (r.id === updatedRoom.id ? updatedRoom : r)));
-    addLog(`Room info for "${updatedRoom.roomNumber}" was updated.`, 'info');
-    showToast(`Room config for ${updatedRoom.roomNumber} updated successfully!`, 'success');
+
+    void (async () => {
+      try {
+        const saved = await updateRoomApi(updatedRoom.id, mapRoomToUpdatePayload(updatedRoom));
+        const mappedRoom = mapApiRoomToRoom(saved, students);
+        setRooms((prev) => prev.map((r) => (r.id === updatedRoom.id ? mappedRoom : r)));
+        addLog(`Room info for "${mappedRoom.roomNumber}" was updated.`, 'info');
+        showToast(`Room config for ${mappedRoom.roomNumber} updated successfully!`, 'success');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to update room.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const deleteRoom = (id: string) => {
@@ -377,14 +466,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     const target = rooms.find((r) => r.id === id);
     if (!target) return;
-    
-    // Unallot students first
-    setStudents((prev) =>
-      prev.map((s) => (s.roomNumber === target.roomNumber ? { ...s, roomNumber: null, block: null } : s))
-    );
-    setRooms((prev) => prev.filter((r) => r.id !== id));
-    addLog(`Room "${target.roomNumber}" was deleted from the register.`, 'warning');
-    showToast(`Room ${target.roomNumber} has been removed.`, 'info');
+
+    void (async () => {
+      try {
+        await deleteRoomApi(id);
+        setStudents((prev) =>
+          prev.map((s) =>
+            s.roomNumber === target.roomNumber ? { ...s, roomNumber: null, block: null } : s
+          )
+        );
+        setRooms((prev) => prev.filter((r) => r.id !== id));
+        addLog(`Room "${target.roomNumber}" was deleted from the register.`, 'warning');
+        showToast(`Room ${target.roomNumber} has been removed.`, 'info');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to delete room.';
+        showToast(message, 'error');
+      }
+    })();
+  };
+
+  const persistRoomUpdate = async (updatedRoom: Room) => {
+    const saved = await updateRoomApi(updatedRoom.id, mapRoomToUpdatePayload(updatedRoom));
+    const mappedRoom = mapApiRoomToRoom(saved, students);
+    setRooms((prev) => prev.map((r) => (r.id === updatedRoom.id ? mappedRoom : r)));
+    return mappedRoom;
   };
 
   const allocateRoomItem = (roomId: string, inventoryItemId: string, quantity: number) => {
@@ -419,9 +525,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       allocatedItems: updatedAllocated
     };
 
-    setRooms((prev) => prev.map((r) => (r.id === roomId ? updatedRoom : r)));
-    addLog(`Allocated ${quantity}x "${targetItem.name}" to Room ${targetRoom.roomNumber}.`, 'success');
-    showToast(`Allocated ${quantity}x ${targetItem.name} to Room ${targetRoom.roomNumber}`, 'success');
+    void (async () => {
+      try {
+        const mappedRoom = await persistRoomUpdate(updatedRoom);
+        addLog(`Allocated ${quantity}x "${targetItem.name}" to Room ${mappedRoom.roomNumber}.`, 'success');
+        showToast(`Allocated ${quantity}x ${targetItem.name} to Room ${mappedRoom.roomNumber}`, 'success');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to allocate room item.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const removeRoomItem = (roomId: string, inventoryItemId: string) => {
@@ -443,9 +557,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       allocatedItems: updatedAllocated
     };
 
-    setRooms((prev) => prev.map((r) => (r.id === roomId ? updatedRoom : r)));
-    addLog(`Removed "${itemToRemove.inventoryItemName}" from Room ${targetRoom.roomNumber}.`, 'warning');
-    showToast(`Removed asset from Room ${targetRoom.roomNumber}`, 'info');
+    void (async () => {
+      try {
+        const mappedRoom = await persistRoomUpdate(updatedRoom);
+        addLog(`Removed "${itemToRemove.inventoryItemName}" from Room ${mappedRoom.roomNumber}.`, 'warning');
+        showToast(`Removed asset from Room ${mappedRoom.roomNumber}`, 'info');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to remove room item.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   // STUDENT ACTIONS
@@ -454,19 +576,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Action Denied: Staff cannot register students.', 'error');
       return;
     }
-    const newStudent: Student = {
-      ...studentData,
-      id: `student_${Date.now()}`,
-    };
-    setStudents((prev) => [...prev, newStudent]);
-    addLog(`Student record created for ${newStudent.name}.`, 'success');
-    showToast(`Student record for ${newStudent.name} created successfully!`, 'success');
 
-    // If a room is allotted, adjust rooms (triggers room update logic)
-    if (newStudent.roomNumber) {
-      addLog(`Allotted Room ${newStudent.roomNumber} to ${newStudent.name}.`, 'success');
-      showToast(`Allotted Room ${newStudent.roomNumber} to ${newStudent.name}.`, 'success');
-    }
+    void (async () => {
+      try {
+        const newStudent = await createStudentApi(studentData);
+        setStudents((prev) => [...prev, newStudent]);
+        addLog(`Student record created for ${newStudent.name}.`, 'success');
+        showToast(`Student record for ${newStudent.name} created successfully!`, 'success');
+        if (newStudent.roomNumber) {
+          addLog(`Allotted Room ${newStudent.roomNumber} to ${newStudent.name}.`, 'success');
+          showToast(`Allotted Room ${newStudent.roomNumber} to ${newStudent.name}.`, 'success');
+        }
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to create student.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const updateStudent = (updatedStudent: Student) => {
@@ -474,9 +600,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Action Denied: Staff cannot modify student records.', 'error');
       return;
     }
-    setStudents((prev) => prev.map((s) => (s.id === updatedStudent.id ? updatedStudent : s)));
-    addLog(`Student record for "${updatedStudent.name}" was modified.`, 'info');
-    showToast(`Student record for ${updatedStudent.name} modified successfully!`, 'success');
+
+    void (async () => {
+      try {
+        const saved = await updateStudentApi(updatedStudent);
+        setStudents((prev) => prev.map((s) => (s.id === saved.id ? saved : s)));
+        addLog(`Student record for "${saved.name}" was modified.`, 'info');
+        showToast(`Student record for ${saved.name} modified successfully!`, 'success');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to update student.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const deleteStudent = (id: string) => {
@@ -486,9 +622,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     const target = students.find((s) => s.id === id);
     if (!target) return;
-    setStudents((prev) => prev.filter((s) => s.id !== id));
-    addLog(`Student record for "${target.name}" removed from the database.`, 'warning');
-    showToast(`Student record for ${target.name} removed.`, 'info');
+
+    void (async () => {
+      try {
+        await deleteStudentApi(id);
+        setStudents((prev) => prev.filter((s) => s.id !== id));
+        addLog(`Student record for "${target.name}" removed from the database.`, 'warning');
+        showToast(`Student record for ${target.name} removed.`, 'info');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to delete student.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const allotStudentRoom = (studentId: string, roomNumber: string): boolean => {
@@ -515,14 +661,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
 
-    setStudents((prev) =>
-      prev.map((s) =>
-        s.id === studentId ? { ...s, roomNumber, block: targetRoom.block } : s
-      )
-    );
     const targetStudent = students.find((s) => s.id === studentId);
-    addLog(`Successfully allotted Room ${roomNumber} to ${targetStudent?.name || 'student'}.`, 'success');
-    showToast(`Student Allotment Successfully Created for ${targetStudent?.name || 'Student'} in Room ${roomNumber}!`, 'success');
+    if (!targetStudent) return false;
+
+    void (async () => {
+      try {
+        const saved = await updateStudentApi({
+          ...targetStudent,
+          roomNumber,
+          block: targetRoom.block,
+        });
+        setStudents((prev) => prev.map((s) => (s.id === studentId ? saved : s)));
+        addLog(`Successfully allotted Room ${roomNumber} to ${saved.name}.`, 'success');
+        showToast(
+          `Student Allotment Successfully Created for ${saved.name} in Room ${roomNumber}!`,
+          'success'
+        );
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to allot room.';
+        showToast(message, 'error');
+      }
+    })();
+
     return true;
   };
 
@@ -534,11 +695,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetStudent = students.find((s) => s.id === studentId);
     if (!targetStudent || !targetStudent.roomNumber) return;
 
-    setStudents((prev) =>
-      prev.map((s) => (s.id === studentId ? { ...s, roomNumber: null, block: null } : s))
-    );
-    addLog(`De-allocated Room ${targetStudent.roomNumber} from ${targetStudent.name}.`, 'warning');
-    showToast(`De-allocated Room ${targetStudent.roomNumber} from ${targetStudent.name}.`, 'info');
+    void (async () => {
+      try {
+        const saved = await updateStudentApi({
+          ...targetStudent,
+          roomNumber: null,
+          block: null,
+        });
+        setStudents((prev) => prev.map((s) => (s.id === studentId ? saved : s)));
+        addLog(`De-allocated Room ${targetStudent.roomNumber} from ${saved.name}.`, 'warning');
+        showToast(`De-allocated Room ${targetStudent.roomNumber} from ${saved.name}.`, 'info');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to unallot room.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   // INVENTORY ACTIONS
@@ -547,13 +719,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Action Denied: Staff cannot manage inventory items.', 'error');
       return;
     }
-    const newItem: InventoryItem = {
-      ...itemData,
-      id: `inv_${Date.now()}`,
-    };
-    setInventory((prev) => [...prev, newItem]);
-    addLog(`Added brand new inventory asset: "${newItem.name}".`, 'success');
-    showToast(`Inventory asset "${newItem.name}" added successfully.`, 'success');
+
+    void (async () => {
+      try {
+        const newItem = await createInventoryItemApi(itemData);
+        setInventory((prev) => [...prev, newItem]);
+        addLog(`Added brand new inventory asset: "${newItem.name}".`, 'success');
+        showToast(`Inventory asset "${newItem.name}" added successfully.`, 'success');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to add inventory item.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const updateInventoryItem = (updatedItem: InventoryItem) => {
@@ -561,9 +739,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Action Denied: Staff cannot modify inventory items.', 'error');
       return;
     }
-    setInventory((prev) => prev.map((i) => (i.id === updatedItem.id ? updatedItem : i)));
-    addLog(`Inventory record adjusted for "${updatedItem.name}".`, 'info');
-    showToast(`Inventory item "${updatedItem.name}" updated successfully.`, 'success');
+
+    void (async () => {
+      try {
+        const saved = await updateInventoryItemApi(updatedItem);
+        setInventory((prev) => prev.map((i) => (i.id === saved.id ? saved : i)));
+        addLog(`Inventory record adjusted for "${saved.name}".`, 'info');
+        showToast(`Inventory item "${saved.name}" updated successfully.`, 'success');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to update inventory item.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const deleteInventoryItem = (id: string) => {
@@ -573,9 +761,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     const target = inventory.find((i) => i.id === id);
     if (!target) return;
-    setInventory((prev) => prev.filter((i) => i.id !== id));
-    addLog(`Removed assets group: "${target.name}" from logistics system.`, 'warning');
-    showToast(`Removed logistics assets group: "${target.name}"`, 'info');
+
+    void (async () => {
+      try {
+        await deleteInventoryItemApi(id);
+        setInventory((prev) => prev.filter((i) => i.id !== id));
+        addLog(`Removed assets group: "${target.name}" from logistics system.`, 'warning');
+        showToast(`Removed logistics assets group: "${target.name}"`, 'info');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to delete inventory item.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const addStockRecord = (recordData: Omit<StockRecord, 'id'>) => {
@@ -583,35 +781,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Action Denied: Staff cannot log stock shipments.', 'error');
       return;
     }
-    const newRecord: StockRecord = {
-      ...recordData,
-      id: `sr_${Date.now()}`
-    };
-    setStockRecords((prev) => [newRecord, ...prev]);
 
-    // Check if type is Incoming and auto-increment goodCount & quantity in inventory
-    if (newRecord.type === 'Incoming') {
-      setInventory((prev) =>
-        prev.map((item) => {
-          if (item.id === newRecord.inventoryItemId || item.name === newRecord.inventoryItemName) {
-            const addedQty = newRecord.quantity;
-            const newGood = item.goodCount + addedQty;
-            const newTotal = item.quantity + addedQty;
-            return {
-              ...item,
-              goodCount: newGood,
-              quantity: newTotal,
-            };
-          }
-          return item;
-        })
-      );
-      addLog(`Received incoming stock of ${newRecord.quantity} unts for "${newRecord.inventoryItemName}". Cost: $${newRecord.purchaseCost || 0}.`, 'success');
-      showToast(`Incoming shipment of ${newRecord.quantity}x ${newRecord.inventoryItemName} received!`, 'success');
-    } else {
-      addLog(`Recorded stock event for "${newRecord.inventoryItemName}" (${newRecord.type}).`, 'info');
-      showToast(`Recorded stock event successfully.`, 'success');
-    }
+    void (async () => {
+      try {
+        const newRecord = await createStockRecordApi(recordData);
+        setStockRecords((prev) => [newRecord, ...prev]);
+
+        if (recordData.type === 'Incoming') {
+          const inventoryData = await fetchInventory();
+          setInventory(inventoryData);
+          addLog(
+            `Received incoming stock of ${newRecord.quantity} unts for "${newRecord.inventoryItemName}". Cost: $${newRecord.purchaseCost || 0}.`,
+            'success'
+          );
+          showToast(
+            `Incoming shipment of ${newRecord.quantity}x ${newRecord.inventoryItemName} received!`,
+            'success'
+          );
+        } else {
+          addLog(
+            `Recorded stock event for "${newRecord.inventoryItemName}" (${newRecord.type}).`,
+            'info'
+          );
+          showToast(`Recorded stock event successfully.`, 'success');
+        }
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to add stock record.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const deleteStockRecord = (id: string) => {
@@ -621,9 +820,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     const target = stockRecords.find((r) => r.id === id);
     if (!target) return;
-    setStockRecords((prev) => prev.filter((r) => r.id !== id));
-    addLog(`Deleted stock log record from ${target.date} for "${target.inventoryItemName}".`, 'warning');
-    showToast(`Stock record has been deleted.`, 'info');
+
+    void (async () => {
+      try {
+        await deleteStockRecordApi(id);
+        setStockRecords((prev) => prev.filter((r) => r.id !== id));
+        addLog(
+          `Deleted stock log record from ${target.date} for "${target.inventoryItemName}".`,
+          'warning'
+        );
+        showToast(`Stock record has been deleted.`, 'info');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to delete stock record.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const adjustStock = (id: string, goodDiff: number, damagedDiff: number, repairDiff: number) => {
@@ -631,51 +843,71 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Action Denied: Staff cannot adjust stock levels.', 'error');
       return;
     }
-    setInventory((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          const newGood = Math.max(0, item.goodCount + goodDiff);
-          const newDamaged = Math.max(0, item.damagedCount + damagedDiff);
-          const newRepair = Math.max(0, item.repairCount + repairDiff);
-          const newTotal = newGood + newDamaged + newRepair;
-          return {
-            ...item,
-            goodCount: newGood,
-            damagedCount: newDamaged,
-            repairCount: newRepair,
-            quantity: newTotal,
-          };
-        }
-        return item;
-      })
-    );
+
     const item = inventory.find((i) => i.id === id);
-    addLog(`Inventory stock levels adjusted for "${item?.name}".`, 'info');
+    if (!item) return;
+
+    const updatedItem: InventoryItem = {
+      ...item,
+      goodCount: Math.max(0, item.goodCount + goodDiff),
+      damagedCount: Math.max(0, item.damagedCount + damagedDiff),
+      repairCount: Math.max(0, item.repairCount + repairDiff),
+    };
+    updatedItem.quantity = updatedItem.goodCount + updatedItem.damagedCount + updatedItem.repairCount;
+
+    void (async () => {
+      try {
+        const saved = await updateInventoryItemApi(updatedItem);
+        setInventory((prev) => prev.map((i) => (i.id === saved.id ? saved : i)));
+        addLog(`Inventory stock levels adjusted for "${saved.name}".`, 'info');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to adjust stock.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   // MAINTENANCE ACTIONS
-  const addMaintenanceRequest = (item: Omit<MaintenanceRequest, 'id' | 'date' | 'status' | 'assignedTo'>) => {
-    const newReq: MaintenanceRequest = {
-      ...item,
-      id: `req_${Date.now()}`,
-      status: 'Pending',
-      date: new Date().toISOString().split('T')[0],
-      assignedTo: null,
-    };
-    setMaintenance((prev) => [newReq, ...prev]);
-    addLog(`Raised a ${newReq.priority} priority maintenance ticket for ${newReq.roomNumber}: "${newReq.title}"`, 'warning');
-    showToast(`Work Order Successfully Raised: "${newReq.title}"`, 'success');
+  const addMaintenanceRequest = (
+    item: Omit<MaintenanceRequest, 'id' | 'date' | 'status' | 'assignedTo'>
+  ) => {
+    void (async () => {
+      try {
+        const newReq = await createMaintenanceRequestApi(item);
+        setMaintenance((prev) => [newReq, ...prev]);
+        addLog(
+          `Raised a ${newReq.priority} priority maintenance ticket for ${newReq.roomNumber}: "${newReq.title}"`,
+          'warning'
+        );
+        showToast(`Work Order Successfully Raised: "${newReq.title}"`, 'success');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to create maintenance request.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
-  const updateMaintenanceStatus = (id: string, status: 'Pending' | 'In Progress' | 'Completed') => {
-    setMaintenance((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, status } : m))
-    );
-    const req = maintenance.find((m) => m.id === id);
-    if (req) {
-      addLog(`Maintenance issue "${req.title}" status changed to ${status.toUpperCase()}.`, status === 'Completed' ? 'success' : 'info');
-      showToast(`Work Order Updated to ${status}!`, 'success');
-    }
+  const updateMaintenanceStatus = (
+    id: string,
+    status: 'Pending' | 'In Progress' | 'Completed'
+  ) => {
+    void (async () => {
+      try {
+        const saved = await updateMaintenanceRequestApi(id, { status });
+        setMaintenance((prev) => prev.map((m) => (m.id === id ? saved : m)));
+        addLog(
+          `Maintenance issue "${saved.title}" status changed to ${status.toUpperCase()}.`,
+          status === 'Completed' ? 'success' : 'info'
+        );
+        showToast(`Work Order Updated to ${status}!`, 'success');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to update maintenance status.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const assignMaintenanceWorker = (id: string, worker: string | null) => {
@@ -683,12 +915,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Action Denied: Staff cannot assign specialists.', 'error');
       return;
     }
-    setMaintenance((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, assignedTo: worker, status: worker ? 'In Progress' : 'Pending' } : m))
-    );
-    const req = maintenance.find((m) => m.id === id);
-    addLog(`Assigned ${worker || 'nobody'} to maintenance task "${req?.title}".`, 'info');
-    showToast(`Assigned worker to work order: "${req?.title}"`, 'success');
+
+    void (async () => {
+      try {
+        const saved = await updateMaintenanceRequestApi(id, {
+          assignedTo: worker,
+          status: worker ? 'In Progress' : 'Pending',
+        });
+        setMaintenance((prev) => prev.map((m) => (m.id === id ? saved : m)));
+        addLog(`Assigned ${worker || 'nobody'} to maintenance task "${saved.title}".`, 'info');
+        showToast(`Assigned worker to work order: "${saved.title}"`, 'success');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to assign maintenance worker.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   const deleteMaintenanceRequest = (id: string) => {
@@ -698,9 +940,126 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     const target = maintenance.find((m) => m.id === id);
     if (!target) return;
-    setMaintenance((prev) => prev.filter((m) => m.id !== id));
-    addLog(`Deleted maintenance ticket #${id} (${target.title}).`, 'info');
-    showToast(`Work order ticket for "${target.title}" deleted.`, 'info');
+
+    void (async () => {
+      try {
+        await deleteMaintenanceRequestApi(id);
+        setMaintenance((prev) => prev.filter((m) => m.id !== id));
+        addLog(`Deleted maintenance ticket #${id} (${target.title}).`, 'info');
+        showToast(`Work order ticket for "${target.title}" deleted.`, 'info');
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to delete maintenance request.';
+        showToast(message, 'error');
+      }
+    })();
+  };
+
+  // REQUEST ACTIONS
+  const addRequest = (req: Omit<HostelRequest, 'id' | 'status' | 'createdAt'>) => {
+    void (async () => {
+      try {
+        const created = await createRequestApi(req);
+        setRequests((prev) => [created, ...prev]);
+        addLog(`New request submitted: ${created.requestType}`, 'info');
+        showToast('Request submitted successfully.', 'success');
+      } catch (error) {
+        const message = error instanceof ApiError ? error.message : 'Failed to create request.';
+        showToast(message, 'error');
+      }
+    })();
+  };
+
+  const updateRequest = (id: string, updates: Partial<HostelRequest>) => {
+    void (async () => {
+      try {
+        const saved = await updateRequestApi(id, updates);
+        setRequests((prev) => prev.map((r) => (r.id === id ? saved : r)));
+        showToast('Request updated successfully.', 'success');
+      } catch (error) {
+        const message = error instanceof ApiError ? error.message : 'Failed to update request.';
+        showToast(message, 'error');
+      }
+    })();
+  };
+
+  const approveRequest = (id: string) => {
+    void (async () => {
+      try {
+        const saved = await approveRequestApi(id);
+        setRequests((prev) => prev.map((r) => (r.id === id ? saved : r)));
+        showToast('Request approved.', 'success');
+      } catch (error) {
+        const message = error instanceof ApiError ? error.message : 'Failed to approve request.';
+        showToast(message, 'error');
+      }
+    })();
+  };
+
+  const rejectRequest = (id: string) => {
+    void (async () => {
+      try {
+        const saved = await rejectRequestApi(id);
+        setRequests((prev) => prev.map((r) => (r.id === id ? saved : r)));
+        showToast('Request rejected.', 'info');
+      } catch (error) {
+        const message = error instanceof ApiError ? error.message : 'Failed to reject request.';
+        showToast(message, 'error');
+      }
+    })();
+  };
+
+  const deleteRequest = (id: string) => {
+    void (async () => {
+      try {
+        await deleteRequestApi(id);
+        setRequests((prev) => prev.filter((r) => r.id !== id));
+        showToast('Request deleted.', 'info');
+      } catch (error) {
+        const message = error instanceof ApiError ? error.message : 'Failed to delete request.';
+        showToast(message, 'error');
+      }
+    })();
+  };
+
+  // NOTIFICATION ACTIONS
+  const markNotificationAsRead = (id: string) => {
+    void (async () => {
+      try {
+        const saved = await markNotificationRead(id);
+        setNotifications((prev) => prev.map((n) => (n.id === id ? saved : n)));
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to mark notification as read.';
+        showToast(message, 'error');
+      }
+    })();
+  };
+
+  const deleteNotification = (id: string) => {
+    void (async () => {
+      try {
+        await deleteNotificationApi(id);
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to delete notification.';
+        showToast(message, 'error');
+      }
+    })();
+  };
+
+  const clearAllNotifications = () => {
+    void (async () => {
+      try {
+        await Promise.all(notifications.map((n) => deleteNotificationApi(n.id)));
+        setNotifications([]);
+      } catch (error) {
+        const message =
+          error instanceof ApiError ? error.message : 'Failed to clear notifications.';
+        showToast(message, 'error');
+      }
+    })();
   };
 
   // MESS ACTIONS
@@ -812,6 +1171,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateMessQuantity,
         deleteMessSupply,
         addLog,
+        requests,
+        notifications,
+        dashboardStats,
+        refreshAllData,
+        addRequest,
+        updateRequest,
+        approveRequest,
+        rejectRequest,
+        deleteRequest,
+        markNotificationAsRead,
+        deleteNotification,
+        clearAllNotifications,
       }}
     >
       {children}

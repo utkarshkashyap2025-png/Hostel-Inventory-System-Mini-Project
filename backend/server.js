@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const roomRoutes = require('./routes/roomRoutes');
+const studentRoutes = require('./routes/studentRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -28,6 +29,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/rooms', roomRoutes);
+app.use('/api/students', studentRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/inventory', inventoryRoutes);

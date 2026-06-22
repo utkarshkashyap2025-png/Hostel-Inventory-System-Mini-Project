@@ -110,3 +110,35 @@ export interface Toast {
   type: 'success' | 'info' | 'warning' | 'error';
 }
 
+export interface HostelRequest {
+  id: string;
+  roomId: string;
+  requestType: string;
+  description: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  createdAt: string;
+}
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'success';
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface DashboardStats {
+  totalRooms: number;
+  totalRequests: number;
+  totalStudents: number;
+  totalInventoryItems: number;
+  totalMaintenance: number;
+  approvedRequests: number;
+  rejectedRequests: number;
+  pendingRequests: number;
+  pendingMaintenance: number;
+  inProgressMaintenance: number;
+  completedMaintenance: number;
+}
+
