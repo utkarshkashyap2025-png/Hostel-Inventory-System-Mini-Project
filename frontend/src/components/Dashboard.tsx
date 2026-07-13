@@ -33,6 +33,7 @@ import {
 } from 'recharts';
 import { useAppState } from '../AppContext';
 import { MONTHLY_STU_INTAKE, REPLAY_TRENDS } from '../mockData';
+import AIChatbot from "./AIChatbot";
 
 export const Dashboard: React.FC<{ setView: (view: any) => void }> = ({ setView }) => {
   const { rooms, students, inventory, maintenance, systemLogs, currentUser, dashboardStats } =
@@ -432,6 +433,7 @@ export const Dashboard: React.FC<{ setView: (view: any) => void }> = ({ setView 
           </div>
         </div>
       </div>
+      <AIChatbot />
     </div>
   );
 };

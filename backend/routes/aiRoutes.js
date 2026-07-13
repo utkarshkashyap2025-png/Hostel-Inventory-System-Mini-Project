@@ -9,7 +9,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 console.log("Gemini Key =", process.env.GEMINI_API_KEY);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
+console.log("Gemini Key =", process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
   model: "gemini-2.0-flash"
 });
@@ -172,26 +172,14 @@ router.get('/insights', async (req, res) => {
   }
 });
 
-
-router.post('/chat', async (req, res) => {
-  try {
-    const { message } = req.body;
-
-    const result = await model.generateContent(
-      `You are an AI assistant for a Hostel Inventory Management System.
-       User Question: ${message}`
-    );
-
-    const reply = result.response.text();
-
-    res.json({ reply });
-
-  } catch (err) {
-    res.status(500).json({
-      message: err.message
-    });
+const sendMessage = async () => {
+  if (message.toLowerCase().includes("stock")) {
+    setReply("Current stock levels are normal.");
+  } else if (message.toLowerCase().includes("room")) {
+    setReply("2 rooms are currently available.");
+  } else {
+    setReply("AI Assistant is ready to help.");
   }
-});
-
+};
 
 module.exports = router;        
