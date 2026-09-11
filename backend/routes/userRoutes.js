@@ -6,10 +6,18 @@ const {
   getUserById,
   deleteUser,
   updateUser,
+  createAuthority,
 } = require('../controllers/userController');
 
 const verifyToken = require('../middleware/authMiddleware');
 const authorizeRoles = require('../middleware/roleMiddleware');
+
+router.post(
+  '/authority',
+  verifyToken,
+  authorizeRoles('admin'),
+  createAuthority
+);
 
 router.get(
   '/',

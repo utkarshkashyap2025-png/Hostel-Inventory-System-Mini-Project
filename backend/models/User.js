@@ -31,7 +31,7 @@ resetPasswordExpire: {
 
     role: {
       type: String,
-      enum: ['admin', 'staff', 'student'],
+      enum: ['admin', 'authority', 'staff', 'student'],
       default: 'student',
     },
 
@@ -41,6 +41,18 @@ resetPasswordExpire: {
       sparse: true,
       unique: true,
     },
+
+    employeeId: {
+  type: String,
+  trim: true,
+  sparse: true,
+  unique: true,
+},
+
+designation: {
+  type: String,
+  trim: true,
+},
 
     contact: {
       type: String,
