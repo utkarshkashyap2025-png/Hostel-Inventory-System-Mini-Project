@@ -462,29 +462,21 @@ main .border-ivory,
   border-color: var(--theme-card-border) !important;
 }
 
-/* Ensure maximum text readability */
-main p,
-main span,
-main label,
-main strong,
-main td,
-main th,
-main p *,
-main span *,
-main label *,
-main strong *,
-main li,
-main a:not(.btn-primary),
-#student-portal-layout main p,
-#student-portal-layout main span,
-#student-portal-layout main label,
-#student-portal-layout main strong,
-#student-portal-layout main td,
-#student-portal-layout main th,
-#student-portal-layout main p *,
-#student-portal-layout main span *,
-#student-portal-layout main label *,
-#student-portal-layout main strong * {
+/* Ensure maximum text readability (excluding chatbot popup widget) */
+main p:not(#chatbot-root *),
+main span:not(#chatbot-root *),
+main label:not(#chatbot-root *),
+main strong:not(#chatbot-root *),
+main td:not(#chatbot-root *),
+main th:not(#chatbot-root *),
+main li:not(#chatbot-root *),
+main a:not(.btn-primary):not(#chatbot-root *),
+#student-portal-layout main p:not(#chatbot-root *),
+#student-portal-layout main span:not(#chatbot-root *),
+#student-portal-layout main label:not(#chatbot-root *),
+#student-portal-layout main strong:not(#chatbot-root *),
+#student-portal-layout main td:not(#chatbot-root *),
+#student-portal-layout main th:not(#chatbot-root *) {
   color: var(--theme-card-text) !important; /* Solid readability charcoal */
 }
 

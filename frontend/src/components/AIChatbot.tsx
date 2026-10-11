@@ -147,20 +147,21 @@ export default function AIChatbot() {
   const formatMessageText = (raw: string) => {
     const lines = raw.split('\n');
     return lines.map((line, idx) => {
+      // Split on bold markdown **...**
       const parts = line.split(/(\*\*.*?\*\*)/g);
       const renderedParts = parts.map((part, pIdx) => {
         if (part.startsWith('**') && part.endsWith('**')) {
           return (
-            <strong key={pIdx} className="font-semibold text-slate-900">
+            <span key={pIdx} className="font-semibold text-white drop-shadow-xs">
               {part.slice(2, -2)}
-            </strong>
+            </span>
           );
         }
         return part;
       });
 
       return (
-        <span key={idx} className="block leading-relaxed">
+        <span key={idx} className="block leading-relaxed min-h-[1.25rem]">
           {renderedParts}
         </span>
       );
@@ -168,7 +169,7 @@ export default function AIChatbot() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 select-none flex flex-col items-end">
+    <div id="chatbot-root" className="fixed bottom-6 right-6 z-50 select-none flex flex-col items-end">
       <AnimatePresence>
         {isOpen && (
           <motion.div
