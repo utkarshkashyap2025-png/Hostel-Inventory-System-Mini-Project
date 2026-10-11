@@ -176,48 +176,64 @@ export default function AIChatbot() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 25 }}
             transition={{ type: 'spring', damping: 28, stiffness: 360 }}
-            className="flex flex-col w-[94vw] sm:w-[430px] h-[610px] max-h-[85vh] bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden mb-3 text-slate-800"
+            className="flex flex-col w-[94vw] sm:w-[430px] h-[610px] max-h-[85vh] bg-slate-950/40 rounded-3xl shadow-2xl border border-white/20 backdrop-blur-2xl overflow-hidden mb-3 text-slate-800"
+            style={{
+              boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.4), 0 0 40px rgba(99, 102, 241, 0.2)'
+            }}
           >
-            {/* Redesigned Modern Header */}
-            <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white p-4.5 flex items-center justify-between shadow-sm">
-              <div className="flex items-center space-x-3.5">
-                <div className="relative">
-                  <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/25 shadow-inner">
-                    <Bot className="w-6 h-6 text-white" />
-                  </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 border-2 border-indigo-700 rounded-full" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-[15px] tracking-tight leading-tight text-white flex items-center gap-1.5">
-                    Hostel Assistant
-                    <Sparkles className="w-3.5 h-3.5 text-amber-300 inline" />
-                  </h3>
-                  <p className="text-xs text-blue-100 font-normal mt-0.5">
-                    Always here to help
-                  </p>
-                </div>
-              </div>
+            {/* Ultra-Modern Glassmorphic Title Bar */}
+            <div className="relative overflow-hidden bg-slate-900/90 backdrop-blur-xl border-b border-white/10 p-4 text-white">
+              {/* Subtle ambient glow in the header background */}
+              <div className="absolute -top-12 -left-12 w-36 h-36 bg-indigo-500/30 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -top-12 -right-12 w-36 h-36 bg-purple-500/25 rounded-full blur-2xl pointer-events-none" />
 
-              <div className="flex items-center space-x-1.5 text-white/90">
-                <button
-                  onClick={handleClearChat}
-                  title="Clear chat"
-                  className="p-2 hover:bg-white/15 active:scale-95 rounded-xl transition-all cursor-pointer"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  title="Minimize"
-                  className="p-2 hover:bg-white/15 active:scale-95 rounded-xl transition-all cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+              <div className="relative z-10 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-500 p-0.5 shadow-lg shadow-indigo-500/30">
+                      <div className="w-full h-full bg-slate-950/80 rounded-[14px] flex items-center justify-center backdrop-blur-xs">
+                        <Bot className="w-5 h-5 text-indigo-300" />
+                      </div>
+                    </div>
+                    <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-900 rounded-full" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-semibold text-sm tracking-tight text-white">
+                        Hostel Assistant
+                      </h3>
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <p className="text-[11px] text-slate-400 font-medium">
+                        Online • 24/7 Support
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={handleClearChat}
+                    title="Clear chat"
+                    className="p-2 text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 rounded-xl transition-all cursor-pointer"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    title="Minimize"
+                    className="p-2 text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 rounded-xl transition-all cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Quick Action Suggestion Chips */}
-            <div className="px-3.5 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <div className="px-3.5 py-2.5 bg-slate-900/60 backdrop-blur-md border-b border-white/5 flex items-center gap-2 overflow-x-auto no-scrollbar">
               {QUICK_ACTIONS.map((item, idx) => {
                 const Icon = item.icon;
                 return (
@@ -225,17 +241,28 @@ export default function AIChatbot() {
                     key={idx}
                     onClick={() => handleSendMessage(item.prompt)}
                     disabled={isTyping}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 hover:border-indigo-200 rounded-full transition-all whitespace-nowrap shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-white/5 hover:bg-indigo-600 hover:text-white border border-white/10 hover:border-indigo-400 rounded-full transition-all whitespace-nowrap shadow-xs cursor-pointer active:scale-95 disabled:opacity-50 backdrop-blur-xs"
                   >
-                    <Icon className="w-3.5 h-3.5 text-indigo-500" />
+                    <Icon className="w-3.5 h-3.5 text-indigo-400 group-hover:text-white" />
                     {item.label}
                   </button>
                 );
               })}
             </div>
 
-            {/* Messages Stream */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-50/70 to-white text-sm">
+            {/* Messages Stream with Sleek Modern Chat Wallpaper Background */}
+            <div
+              className="flex-1 overflow-y-auto p-4 space-y-4 text-sm relative"
+              style={{
+                backgroundColor: '#0b0f19',
+                backgroundImage: `
+                  radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 40%),
+                  radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+                `,
+                backgroundSize: '100% 100%, 100% 100%, 20px 20px',
+              }}
+            >
               {messages.map((msg) => {
                 const isUser = msg.sender === 'user';
                 return (
@@ -248,16 +275,16 @@ export default function AIChatbot() {
                   >
                     <div className="flex items-end gap-2.5 max-w-[88%] group">
                       {!isUser && (
-                        <div className="w-7 h-7 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0 text-indigo-600 mb-1 border border-indigo-200 shadow-xs">
+                        <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shrink-0 text-white mb-1 shadow-md shadow-indigo-500/20">
                           <Bot className="w-4 h-4" />
                         </div>
                       )}
 
                       <div
-                        className={`relative rounded-2xl px-4 py-3 shadow-xs ${
+                        className={`relative rounded-2xl px-4 py-3 shadow-md ${
                           isUser
-                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-xs shadow-indigo-200'
-                            : 'bg-white border border-slate-200 text-slate-800 rounded-bl-xs'
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-br-xs shadow-indigo-900/30'
+                            : 'bg-slate-900/90 border border-white/10 text-slate-100 rounded-bl-xs shadow-black/40 backdrop-blur-md'
                         }`}
                       >
                         <div className="text-xs sm:text-[13px] leading-relaxed break-words">
@@ -265,14 +292,14 @@ export default function AIChatbot() {
                         </div>
 
                         {!isUser && (
-                          <div className="mt-2.5 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                          <div className="mt-2.5 pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-400">
                             <span>{msg.timestamp}</span>
                             <button
                               onClick={() => copyToClipboard(msg.text, msg.id)}
-                              className="hover:text-indigo-600 transition-colors cursor-pointer flex items-center gap-1 opacity-70 hover:opacity-100"
+                              className="hover:text-indigo-400 transition-colors cursor-pointer flex items-center gap-1 opacity-70 hover:opacity-100"
                             >
                               {copiedId === msg.id ? (
-                                <Check className="w-3 h-3 text-emerald-600" />
+                                <Check className="w-3 h-3 text-emerald-400" />
                               ) : (
                                 <Copy className="w-3 h-3" />
                               )}
@@ -283,14 +310,14 @@ export default function AIChatbot() {
                       </div>
 
                       {isUser && (
-                        <div className="w-7 h-7 rounded-xl bg-blue-600 flex items-center justify-center shrink-0 text-white mb-1 shadow-xs">
+                        <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shrink-0 text-white mb-1 shadow-md shadow-blue-500/20">
                           <User className="w-4 h-4" />
                         </div>
                       )}
                     </div>
 
                     {isUser && (
-                      <span className="text-[10px] text-slate-400 mt-1 mr-9">
+                      <span className="text-[10px] text-slate-500 mt-1 mr-9 font-medium">
                         {msg.timestamp}
                       </span>
                     )}
@@ -305,25 +332,25 @@ export default function AIChatbot() {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex items-end gap-2.5"
                 >
-                  <div className="w-7 h-7 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0 text-indigo-600 mb-1 border border-indigo-200">
+                  <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shrink-0 text-white mb-1">
                     <Bot className="w-4 h-4 animate-bounce" />
                   </div>
-                  <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-xs px-4 py-3 shadow-xs">
+                  <div className="bg-slate-900/90 border border-white/10 rounded-2xl rounded-bl-xs px-4 py-3 shadow-md backdrop-blur-md">
                     <div className="flex items-center space-x-1.5">
                       <motion.span
                         animate={{ y: [0, -5, 0] }}
                         transition={{ repeat: Infinity, duration: 0.6, delay: 0 }}
-                        className="w-2 h-2 bg-indigo-500 rounded-full"
+                        className="w-2 h-2 bg-indigo-400 rounded-full"
                       />
                       <motion.span
                         animate={{ y: [0, -5, 0] }}
                         transition={{ repeat: Infinity, duration: 0.6, delay: 0.15 }}
-                        className="w-2 h-2 bg-indigo-500 rounded-full"
+                        className="w-2 h-2 bg-indigo-400 rounded-full"
                       />
                       <motion.span
                         animate={{ y: [0, -5, 0] }}
                         transition={{ repeat: Infinity, duration: 0.6, delay: 0.3 }}
-                        className="w-2 h-2 bg-indigo-500 rounded-full"
+                        className="w-2 h-2 bg-indigo-400 rounded-full"
                       />
                       <span className="text-[11px] font-medium text-slate-400 pl-2">
                         Typing...
@@ -337,7 +364,7 @@ export default function AIChatbot() {
             </div>
 
             {/* Input Bar */}
-            <div className="p-3.5 bg-white border-t border-slate-200">
+            <div className="p-3.5 bg-slate-900/90 border-t border-white/10 backdrop-blur-xl">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -354,13 +381,13 @@ export default function AIChatbot() {
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message..."
                     disabled={isTyping}
-                    className="w-full pl-4 pr-9 py-2.5 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all text-slate-800 placeholder-slate-400 disabled:opacity-50"
+                    className="w-full pl-4 pr-9 py-2.5 text-xs sm:text-sm bg-slate-800/80 border border-white/10 rounded-2xl focus:outline-none focus:border-indigo-500 focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500/20 transition-all text-white placeholder-slate-400 disabled:opacity-50"
                   />
                   {inputMessage && (
                     <button
                       type="button"
                       onClick={() => setInputMessage('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -372,7 +399,7 @@ export default function AIChatbot() {
                   whileTap={{ scale: 0.95 }}
                   type="submit"
                   disabled={!inputMessage.trim() || isTyping}
-                  className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 text-white disabled:text-slate-400 p-2.5 rounded-2xl transition-all shadow-md shadow-indigo-200 disabled:shadow-none cursor-pointer disabled:cursor-not-allowed flex items-center justify-center shrink-0"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-slate-800 disabled:to-slate-800 text-white disabled:text-slate-500 p-2.5 rounded-2xl transition-all shadow-md shadow-indigo-600/30 disabled:shadow-none cursor-pointer disabled:cursor-not-allowed flex items-center justify-center shrink-0 border border-white/10"
                 >
                   <Send className="w-4 h-4" />
                 </motion.button>
@@ -382,7 +409,7 @@ export default function AIChatbot() {
         )}
       </AnimatePresence>
 
-      {/* Floating Trigger Button */}
+      {/* Floating Trigger Button with Ambient Glow */}
       <motion.div
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.94 }}
@@ -393,18 +420,18 @@ export default function AIChatbot() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="absolute right-16 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs px-3 py-1.5 rounded-xl whitespace-nowrap shadow-lg flex items-center gap-1.5"
+            className="absolute right-16 top-1/2 -translate-y-1/2 bg-slate-900/95 border border-white/10 text-white text-xs px-3.5 py-2 rounded-2xl whitespace-nowrap shadow-2xl flex items-center gap-2 backdrop-blur-md"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Need help? Ask Hostel Assistant</span>
-            <div className="absolute right-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+            <span className="font-medium">Need help? Ask Assistant</span>
+            <div className="absolute right-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45 border-r border-t border-white/10" />
           </motion.div>
         )}
 
         <button
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Toggle Hostel Assistant"
-          className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 text-white shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 flex items-center justify-center cursor-pointer transition-all border-2 border-white/40 focus:outline-none"
+          className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 text-white shadow-xl shadow-indigo-500/40 hover:shadow-indigo-500/60 flex items-center justify-center cursor-pointer transition-all border-2 border-white/40 focus:outline-none"
         >
           {isOpen ? (
             <ChevronDown className="w-6 h-6 transition-transform" />
