@@ -1,5 +1,13 @@
 require('dotenv').config();
 
+const dns = require('dns');
+// Use public DNS to prevent querySrv ECONNREFUSED issues on local ISP/Windows DNS
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+  // fallback if permissions restrict custom DNS
+}
+
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
