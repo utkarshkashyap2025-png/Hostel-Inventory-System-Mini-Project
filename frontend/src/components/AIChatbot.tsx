@@ -168,7 +168,7 @@ export default function AIChatbot() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 select-none">
+    <div className="fixed bottom-6 right-6 z-50 select-none flex flex-col items-end">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -178,6 +178,7 @@ export default function AIChatbot() {
             transition={{ type: 'spring', damping: 28, stiffness: 360 }}
             className="flex flex-col w-[94vw] sm:w-[430px] h-[610px] max-h-[85vh] bg-slate-950/40 rounded-3xl shadow-2xl border border-white/20 backdrop-blur-2xl overflow-hidden mb-3 text-slate-800"
             style={{
+              transformOrigin: 'bottom right',
               boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.4), 0 0 40px rgba(99, 102, 241, 0.2)'
             }}
           >
