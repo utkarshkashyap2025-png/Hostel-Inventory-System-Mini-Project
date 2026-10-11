@@ -20,11 +20,11 @@ class ChatbotService {
     if (this.trainingPromise) return this.trainingPromise;
 
     this.trainingPromise = (async () => {
-      console.log('🤖 Training Hostel NLP Chatbot Engine...');
+      console.log('🤖 Training Hostel Assistant Engine...');
       this.registerDocuments();
       await this.manager.train();
       this.isTrained = true;
-      console.log('✅ Hostel NLP Chatbot Engine successfully trained & ready!');
+      console.log('✅ Hostel Assistant Engine trained & ready!');
     })();
 
     return this.trainingPromise;
@@ -33,36 +33,60 @@ class ChatbotService {
   registerDocuments() {
     const m = this.manager;
 
-    // --- GREETINGS & CASUAL ---
+    // --- 1. CASUAL GREETINGS & SMALL TALK ---
     const greetings = [
-      'hi', 'hello', 'hey', 'hey there', 'good morning', 'good afternoon', 'good evening',
-      'greetings', 'namaste', 'hola', 'yo', 'sup', 'anyone there'
+      'hi', 'hii', 'hiii', 'hiiii', 'hello', 'helloo', 'heyy', 'hey', 'heya',
+      'good morning', 'good afternoon', 'good evening', 'good day', 'morning',
+      'greetings', 'namaste', 'hola', 'yo', 'sup', 'wassup', 'anyone there', 'test'
     ];
     greetings.forEach(text => m.addDocument('en', text, 'greeting.hello'));
 
     const botIdentity = [
       'who are you', 'what are you', 'what is your name', 'tell me about yourself',
-      'what can you do', 'how can you help me', 'what is this bot', 'help me'
+      'what can you do', 'how can you help me', 'what is this bot', 'help me',
+      'introduce yourself', 'your capabilities'
     ];
     botIdentity.forEach(text => m.addDocument('en', text, 'bot.identity'));
 
     const howAreYou = [
-      'how are you', 'how are you doing', 'how is it going', 'are you okay', 'how do you do'
+      'how are you', 'how are you doing', 'how is it going', 'are you okay', 'how do you do',
+      'what is going on', 'how is your day', 'whats up'
     ];
     howAreYou.forEach(text => m.addDocument('en', text, 'bot.how_are_you'));
 
     const thanks = [
       'thank you', 'thanks', 'thanks a lot', 'thank you so much', 'appreciate it',
-      'great help', 'awesome thanks', 'thanks buddy'
+      'great help', 'awesome thanks', 'thanks buddy', 'thx', 'thank u', 'ty'
     ];
     thanks.forEach(text => m.addDocument('en', text, 'greeting.thanks'));
 
     const bye = [
-      'bye', 'goodbye', 'see you', 'see you later', 'take care', 'cya', 'exit'
+      'bye', 'goodbye', 'see you', 'see you later', 'take care', 'cya', 'exit', 'good night', 'gn'
     ];
     bye.forEach(text => m.addDocument('en', text, 'greeting.bye'));
 
-    // --- MESS & FOOD TIMINGS ---
+    const compliments = [
+      'you are great', 'good bot', 'you are awesome', 'cool', 'nice work', 'well done', 'smart bot'
+    ];
+    compliments.forEach(text => m.addDocument('en', text, 'bot.compliment'));
+
+    // --- 2. GENERAL STUDENT CONVERSATION & LIFE ---
+    const boredom = [
+      'i am bored', 'what to do', 'entertain me', 'tell me a joke', 'hostel life is boring'
+    ];
+    boredom.forEach(text => m.addDocument('en', text, 'general.joke'));
+
+    const study = [
+      'where can i study quietly', 'exam preparation', 'study area', 'quiet place to read', 'library'
+    ];
+    study.forEach(text => m.addDocument('en', text, 'hostel.study'));
+
+    const weather = [
+      'is it hot today', 'is it cold', 'weather', 'raining outside'
+    ];
+    weather.forEach(text => m.addDocument('en', text, 'general.weather'));
+
+    // --- 3. MESS & FOOD ---
     const messTimings = [
       'what are mess timings', 'when is breakfast', 'when is lunch', 'dinner timing',
       'mess schedule', 'mess hours', 'food timings', 'when can i eat', 'mess open time',
@@ -72,7 +96,7 @@ class ChatbotService {
 
     const messMenu = [
       'what is mess menu', 'what food is served', 'today menu', 'mess diet',
-      'is there non veg', 'vegetarian food in mess', 'mess food quality', 'weekly menu'
+      'is there non veg', 'vegetarian food in mess', 'mess food quality', 'weekly menu', 'food list'
     ];
     messMenu.forEach(text => m.addDocument('en', text, 'mess.menu'));
 
@@ -82,7 +106,7 @@ class ChatbotService {
     ];
     messRules.forEach(text => m.addDocument('en', text, 'mess.rules'));
 
-    // --- HOSTEL TIMINGS & CURFEW ---
+    // --- 4. TIMINGS, GATES & CURFEW ---
     const curfew = [
       'what is hostel gate closing time', 'curfew time', 'in time of hostel',
       'when does gate close', 'hostel entry deadline', 'latest time to enter hostel',
@@ -97,7 +121,7 @@ class ChatbotService {
     ];
     nightPass.forEach(text => m.addDocument('en', text, 'hostel.night_pass'));
 
-    // --- VISITORS & GUESTS ---
+    // --- 5. VISITORS & GUESTS ---
     const visitors = [
       'are visitors allowed', 'can parents stay in hostel', 'can friends visit my room',
       'guest entry rules', 'guest room booking', 'visiting hours', 'visitor policy',
@@ -105,14 +129,14 @@ class ChatbotService {
     ];
     visitors.forEach(text => m.addDocument('en', text, 'hostel.visitors'));
 
-    // --- WI-FI & INTERNET ---
+    // --- 6. WI-FI & INTERNET ---
     const wifi = [
       'what is wifi password', 'how to connect to hostel wifi', 'wifi not working',
       'internet access', 'hostel network speed', 'lan port available', 'wifi login portal'
     ];
     wifi.forEach(text => m.addDocument('en', text, 'hostel.wifi'));
 
-    // --- FACILITIES & AMENITIES ---
+    // --- 7. FACILITIES & AMENITIES ---
     const laundry = [
       'where is laundry', 'washing machine rules', 'how to wash clothes',
       'ironing facilities', 'dry cleaner in hostel', 'laundry timings'
@@ -132,7 +156,7 @@ class ChatbotService {
     ];
     generalFacilities.forEach(text => m.addDocument('en', text, 'hostel.facilities'));
 
-    // --- HEALTH & EMERGENCY ---
+    // --- 8. HEALTH & EMERGENCY ---
     const emergency = [
       'medical emergency', 'first aid box location', 'is doctor available in hostel',
       'ambulance number', 'sick room in hostel', 'warden emergency contact',
@@ -140,7 +164,7 @@ class ChatbotService {
     ];
     emergency.forEach(text => m.addDocument('en', text, 'hostel.emergency'));
 
-    // --- RULES & DISCIPLINE ---
+    // --- 9. RULES & DISCIPLINE ---
     const rules = [
       'what are hostel rules', 'anti ragging policy', 'is smoking allowed',
       'alcohol banned', 'drinking rules in hostel', 'noise rules after 10 pm',
@@ -148,7 +172,7 @@ class ChatbotService {
     ];
     rules.forEach(text => m.addDocument('en', text, 'hostel.rules'));
 
-    // --- WARDEN & CONTACTS ---
+    // --- 10. WARDEN & CONTACTS ---
     const warden = [
       'who is the warden', 'how to contact warden', 'warden office location',
       'warden email phone', 'chief warden name', 'caretaker contact',
@@ -156,16 +180,14 @@ class ChatbotService {
     ];
     warden.forEach(text => m.addDocument('en', text, 'hostel.warden'));
 
-    // --- FEES & REFUNDS ---
+    // --- 11. FEES & REFUNDS ---
     const fees = [
       'hostel fee structure', 'how to pay hostel fees', 'when is fee due',
       'security deposit refund', 'caution money refund', 'fee receipt'
     ];
     fees.forEach(text => m.addDocument('en', text, 'hostel.fees'));
 
-    // --- DYNAMIC DATABASE INTENTS ---
-
-    // 1. Inventory Items Check
+    // --- 12. DYNAMIC DATABASE INTENTS ---
     const invItem = [
       'check stock of item', 'how much stock is left', 'check inventory for',
       'is there any item available', 'quantity of item', 'find item in inventory',
@@ -173,7 +195,6 @@ class ChatbotService {
     ];
     invItem.forEach(text => m.addDocument('en', text, 'inventory.check_item'));
 
-    // 2. Low Stock & Critical Inventory
     const lowStock = [
       'what items are low on stock', 'which items need reorder', 'low stock alerts',
       'items running out of stock', 'critical inventory items', 'shortage of supplies',
@@ -181,21 +202,18 @@ class ChatbotService {
     ];
     lowStock.forEach(text => m.addDocument('en', text, 'inventory.low_stock'));
 
-    // 3. Inventory Total & Summary
     const invTotal = [
       'total inventory items', 'how many items in inventory', 'list all inventory items',
       'overview of inventory', 'inventory summary', 'total items in stock'
     ];
     invTotal.forEach(text => m.addDocument('en', text, 'inventory.total'));
 
-    // 4. Damaged or Repair Items
     const damagedInv = [
       'any damaged items in inventory', 'broken inventory items', 'items needing repair',
       'damaged goods report', 'damaged items count'
     ];
     damagedInv.forEach(text => m.addDocument('en', text, 'inventory.damaged'));
 
-    // 5. Rooms Availability / Vacancy
     const vacantRooms = [
       'how many rooms are available', 'how many vacant rooms', 'are there empty rooms',
       'check available rooms', 'free rooms in hostel', 'vacant beds count',
@@ -203,7 +221,6 @@ class ChatbotService {
     ];
     vacantRooms.forEach(text => m.addDocument('en', text, 'room.vacant'));
 
-    // 6. Specific Room Details
     const roomDetails = [
       'details of room', 'who is in room', 'check room number',
       'status of room', 'capacity of room', 'is room empty or full',
@@ -211,14 +228,12 @@ class ChatbotService {
     ];
     roomDetails.forEach(text => m.addDocument('en', text, 'room.details'));
 
-    // 7. Total Rooms Overview
     const totalRooms = [
       'how many total rooms in hostel', 'total room count', 'hostel room capacity',
       'how many blocks and floors', 'room statistics'
     ];
     totalRooms.forEach(text => m.addDocument('en', text, 'room.total'));
 
-    // 8. Students Count & Info
     const studentCount = [
       'how many students are in hostel', 'total student count', 'hostel strength',
       'number of hostellers', 'total registered students'
@@ -231,7 +246,6 @@ class ChatbotService {
     ];
     studentSearch.forEach(text => m.addDocument('en', text, 'student.search'));
 
-    // 9. Maintenance Pending & Status
     const maintPending = [
       'any pending maintenance issues', 'pending maintenance requests',
       'unresolved maintenance tickets', 'how many complaints are open',
@@ -239,14 +253,12 @@ class ChatbotService {
     ];
     maintPending.forEach(text => m.addDocument('en', text, 'maintenance.pending'));
 
-    // 10. Urgent / High Priority Maintenance
     const maintUrgent = [
       'urgent maintenance issues', 'critical repair requests',
       'high priority complaints', 'emergency maintenance'
     ];
     maintUrgent.forEach(text => m.addDocument('en', text, 'maintenance.urgent'));
 
-    // 11. How to Report / Raise Issue
     const maintReport = [
       'how do i report a complaint', 'how to raise maintenance request',
       'my room light fan broken what to do', 'plumbing repair complaint process',
@@ -255,7 +267,6 @@ class ChatbotService {
     maintReport.forEach(text => m.addDocument('en', text, 'maintenance.how_to_report'));
   }
 
-  // Helper to extract room numbers like 101, B-202, Room 304, etc.
   extractRoomNumber(message) {
     const match = message.match(/(?:room\s*(?:no\.?|number)?\s*|#)?([A-Za-z]?\s*[-]?\s*\d{2,4}[A-Za-z]?)/i);
     if (match && match[1]) {
@@ -264,62 +275,91 @@ class ChatbotService {
     return null;
   }
 
-  // Smart fallback classifier to ensure minimal fallback errors
+  // Smart keyword classifier to catch variations and conversational queries
   smartKeywordMatcher(cleanMsg) {
-    if (/mess|food|breakfast|lunch|dinner|meal|diet|snack/i.test(cleanMsg)) {
-      if (/menu|items|dish/i.test(cleanMsg)) return 'mess.menu';
-      if (/rule|outside|swiggy|zomato/i.test(cleanMsg)) return 'mess.rules';
+    const normalized = cleanMsg.toLowerCase().trim();
+
+    // 1. Natural greetings & casual conversation
+    if (/^(hi+|hey+|hello+|heya+|hola+|yo+|sup|wassup|namaste|morning|afternoon|evening|greetings|gm|ge)[!.,\s]*$/i.test(normalized)) {
+      return 'greeting.hello';
+    }
+    if (/^(how are you|how r u|how do you do|how is it going|hows it going|whats up|what's up|how are things)[?!\s]*$/i.test(normalized)) {
+      return 'bot.how_are_you';
+    }
+    if (/^(who are you|who r u|what are you|what is your name|your name|what can you do|help me)[?!\s]*$/i.test(normalized)) {
+      return 'bot.identity';
+    }
+    if (/^(thank(s)?|thank you|thx|ty|thanks a lot|appreciate it)[!.,\s]*$/i.test(normalized)) {
+      return 'greeting.thanks';
+    }
+    if (/^(bye+|goodbye|cya|see you|good night|gn)[!.,\s]*$/i.test(normalized)) {
+      return 'greeting.bye';
+    }
+    if (/great|awesome|cool|nice|good job|smart/i.test(normalized) && normalized.length < 25) {
+      return 'bot.compliment';
+    }
+    if (/joke|bored|entertain/i.test(normalized)) {
+      return 'general.joke';
+    }
+    if (/study|library|reading room/i.test(normalized)) {
+      return 'hostel.study';
+    }
+
+    // 2. Hostel Domains
+    if (/mess|food|breakfast|lunch|dinner|meal|diet|snack/i.test(normalized)) {
+      if (/menu|items|dish|today/i.test(normalized)) return 'mess.menu';
+      if (/rule|outside|swiggy|zomato/i.test(normalized)) return 'mess.rules';
       return 'mess.timings';
     }
-    if (/gate|curfew|in[- ]?time|entry|lock|closing time/i.test(cleanMsg)) {
+    if (/gate|curfew|in[- ]?time|entry|lock|closing time/i.test(normalized)) {
       return 'hostel.curfew';
     }
-    if (/night[- ]?out|night pass|out[- ]?pass|leave|permission|vacation|holiday/i.test(cleanMsg)) {
+    if (/night[- ]?out|night pass|out[- ]?pass|leave|permission|vacation|holiday/i.test(normalized)) {
       return 'hostel.night_pass';
     }
-    if (/guest|visitor|parent|friend|relative/i.test(cleanMsg)) {
+    if (/guest|visitor|parent|friend|relative/i.test(normalized)) {
       return 'hostel.visitors';
     }
-    if (/wifi|wi-fi|internet|lan|network/i.test(cleanMsg)) {
+    if (/wifi|wi-fi|internet|lan|network/i.test(normalized)) {
       return 'hostel.wifi';
     }
-    if (/wash|laundry|cloth|iron|dry clean/i.test(cleanMsg)) {
+    if (/wash|laundry|cloth|iron|dry clean/i.test(normalized)) {
       return 'hostel.laundry';
     }
-    if (/gym|sports|table tennis|badminton|cricket|workout/i.test(cleanMsg)) {
+    if (/gym|sports|table tennis|badminton|cricket|workout/i.test(normalized)) {
       return 'hostel.gym_sports';
     }
-    if (/doctor|sick|ill|medicine|medical|ambulance|fever|first aid/i.test(cleanMsg)) {
+    if (/doctor|sick|ill|medicine|medical|ambulance|fever|first aid/i.test(normalized)) {
       return 'hostel.emergency';
     }
-    if (/warden|caretaker|contact|office|in-charge/i.test(cleanMsg)) {
+    if (/warden|caretaker|contact|office|in-charge/i.test(normalized)) {
       return 'hostel.warden';
     }
-    if (/fee|charge|deposit|caution|refund|payment/i.test(cleanMsg)) {
+    if (/fee|charge|deposit|caution|refund|payment/i.test(normalized)) {
       return 'hostel.fees';
     }
-    if (/rule|discipline|smoke|alcohol|drink|ragging|noise|prohibited/i.test(cleanMsg)) {
+    if (/rule|discipline|smoke|alcohol|drink|ragging|noise|prohibited/i.test(normalized)) {
       return 'hostel.rules';
     }
-    if (/facility|amenit|geyser|hot water|purifier|generator|library|study/i.test(cleanMsg)) {
+    if (/facility|amenit|geyser|hot water|purifier|generator|library|study/i.test(normalized)) {
       return 'hostel.facilities';
     }
-    if (/broken|leak|plumb|fan|light|switch|tap|flush|repair|maintenance|complaint/i.test(cleanMsg)) {
-      if (/how|process|file|raise|lodge|submit/i.test(cleanMsg)) return 'maintenance.how_to_report';
-      if (/urgent|critical|emergency|high/i.test(cleanMsg)) return 'maintenance.urgent';
+    if (/broken|leak|plumb|fan|light|switch|tap|flush|repair|maintenance|complaint/i.test(normalized)) {
+      if (/how|process|file|raise|lodge|submit/i.test(normalized)) return 'maintenance.how_to_report';
+      if (/urgent|critical|emergency|high/i.test(normalized)) return 'maintenance.urgent';
       return 'maintenance.pending';
     }
-    if (/room/i.test(cleanMsg)) {
-      if (/\d{2,4}/.test(cleanMsg)) return 'room.details';
-      if (/vacan|avail|free|empty/i.test(cleanMsg)) return 'room.vacant';
+    if (/room/i.test(normalized)) {
+      if (/\d{2,4}/.test(normalized)) return 'room.details';
+      if (/vacan|avail|free|empty/i.test(normalized)) return 'room.vacant';
       return 'room.total';
     }
-    if (/stock|inventory|item|supply|supplies|material/i.test(cleanMsg)) {
-      if (/low|short|restock|reorder|out of/i.test(cleanMsg)) return 'inventory.low_stock';
-      if (/damage|broken/i.test(cleanMsg)) return 'inventory.damaged';
+    if (/stock|inventory|item|supply|supplies|material/i.test(normalized)) {
+      if (/low|short|restock|reorder|out of/i.test(normalized)) return 'inventory.low_stock';
+      if (/damage|broken/i.test(normalized)) return 'inventory.damaged';
       return 'inventory.total';
     }
-    if (/student|hosteller|occupant|boy|girl/i.test(cleanMsg)) {
+    if (/student|hosteller|occupant|boy|girl/i.test(normalized)) {
       return 'student.count';
     }
     return null;
@@ -336,20 +376,20 @@ class ChatbotService {
     }
 
     const cleanMsg = userMessage.trim();
+
+    // 1. Fast exact/regex check first for casual conversations & greetings
+    const fastIntent = this.smartKeywordMatcher(cleanMsg);
+
+    // 2. Run NLP processor
     const result = await this.manager.process('en', cleanMsg);
+    let intent = fastIntent || result.intent;
 
-    let intent = result.intent;
-    const score = result.score;
-
-    // If confidence is modest or None, apply our smart keyword analyzer
-    if (!intent || intent === 'None' || score < 0.6) {
-      const fallbackIntent = this.smartKeywordMatcher(cleanMsg);
-      if (fallbackIntent) {
-        intent = fallbackIntent;
-      }
+    if (!intent || intent === 'None' || (!fastIntent && result.score < 0.65)) {
+      const fallback = this.smartKeywordMatcher(cleanMsg);
+      if (fallback) intent = fallback;
     }
 
-    // Dispatch intent to specialized handler
+    // 3. Dispatch intent
     switch (intent) {
       // --- DYNAMIC INVENTORY ---
       case 'inventory.low_stock':
@@ -394,37 +434,62 @@ class ChatbotService {
           intent
         };
 
-      // --- STATIC FAQ / HOSTEL KNOWLEDGE BASE ---
+      // --- CASUAL & GENERAL CONVERSATION ---
       case 'greeting.hello':
         return {
-          reply: `👋 Hello! I am your 24/7 **Hostel Assistant**.\n\nYou can ask me questions such as:\n• *"How many rooms are vacant?"*\n• *"What items are low on stock?"*\n• *"What are the mess timings?"*\n• *"Any pending maintenance requests?"*\n• *"Hostel gate curfew and rules"*\n\nHow can I help you today?`,
+          reply: `👋 Hello there! How are you doing today?\n\nI'm your **Hostel Assistant**. Feel free to ask me anything about:\n• 🛏️ **Room availability & allotments**\n• 📦 **Inventory & supplies stock**\n• 🍽️ **Mess timings & menus**\n• ⏰ **Hostel gates & curfew**\n• 🛠️ **Maintenance & repair requests**\n\nWhat would you like to check?`,
           intent
         };
 
       case 'bot.identity':
         return {
-          reply: `🤖 I am the **Hostel Inventory & Management System Assistant**!\n\nI run locally on this server using real-time database queries and NLP. I can check live stock quantities, track room allotments, check maintenance complaints, and answer any hostel policies.`,
+          reply: `🤖 I am the **Hostel Assistant** for this portal!\n\nI can look up live room bookings, inventory items, pending maintenance complaints, mess meal hours, Wi-Fi credentials, and all hostel safety regulations. Ask away!`,
           intent
         };
 
       case 'bot.how_are_you':
         return {
-          reply: `😊 I'm running smoothly and ready to assist! The hostel database is connected and active. What would you like to know?`,
+          reply: `😊 I'm doing great, thank you for asking! Ready to help you with any hostel queries or room lookups. How is everything with you?`,
+          intent
+        };
+
+      case 'bot.compliment':
+        return {
+          reply: `✨ Thank you so much! Always happy to help make hostel life easier and smoother. Let me know if you need anything else!`,
           intent
         };
 
       case 'greeting.thanks':
         return {
-          reply: `You're very welcome! Let me know if you need any more info about rooms, stock, or hostel rules. Have a great day! ✨`,
+          reply: `You're very welcome! If you ever need help with room details, food schedules, or supplies, just drop a message here. Have a great day! ✨`,
           intent
         };
 
       case 'greeting.bye':
         return {
-          reply: `Goodbye! Have a productive and safe stay at the hostel. Feel free to come back whenever you have questions! 👋`,
+          reply: `Take care and have a wonderful day ahead! Reach out anytime you have a question. 👋`,
           intent
         };
 
+      case 'general.joke':
+        return {
+          reply: `😄 Here's a quick hostel joke for you:\n\n*Why did the student bring a ladder to the hostel mess?*\n*Because they heard the food was on another level!* 🍜😂\n\nNeed to check the real mess timings or today's menu instead? Just ask!`,
+          intent
+        };
+
+      case 'hostel.study':
+        return {
+          reply: `📚 **Quiet Study Areas:**\n\n• **Hostel Reading Hall:** 1st Floor Central Wing (Open 24/7 with charging points & Wi-Fi).\n• **Campus Central Library:** 8:00 AM – 11:00 PM on weekdays.\n• Corridors and common rooms observe strict silence hours after 10:30 PM.`,
+          intent
+        };
+
+      case 'general.weather':
+        return {
+          reply: `🌤️ You can check the current campus temperature on your phone! Don't forget that chilled RO water coolers are active on every hostel floor, and geysers run hot water in the mornings and evenings.`,
+          intent
+        };
+
+      // --- STATIC FAQ / HOSTEL KNOWLEDGE BASE ---
       case 'mess.timings':
         return {
           reply: `🍽️ **Hostel Mess Timings:**\n\n• **Breakfast:** 7:30 AM – 9:30 AM\n• **Lunch:** 12:30 PM – 2:30 PM\n• **Evening Snacks & Tea:** 5:00 PM – 6:15 PM\n• **Dinner:** 7:30 PM – 9:45 PM\n\n*Note: Please bring your Hostel ID/Mess Card for scanning at the counter.*`,
@@ -509,17 +574,17 @@ class ChatbotService {
           intent
         };
 
-      default:
-        // Try dynamic item search as a last resort before fallback
+      default: {
         const dynamicItemResult = await this.handleCheckItem(cleanMsg);
         if (dynamicItemResult) {
           return dynamicItemResult;
         }
 
         return {
-          reply: `🤔 I didn't quite catch the specific details, but I can help you with anything related to the hostel!\n\nTry asking me:\n• *"How many vacant rooms are left?"*\n• *"What items are running low on stock?"*\n• *"Status of room 101"*\n• *"What are the mess timings and menu?"*\n• *"What is the hostel gate closing time?"*\n• *"How do I submit a maintenance request?"*`,
+          reply: `👋 I'm here to help with anything around the hostel! Try asking:\n\n• *"How many vacant rooms are available?"*\n• *"What items are running low on stock?"*\n• *"What are the mess timings & menu?"*\n• *"What is the curfew time?"*\n• *"How do I raise a maintenance request?"*`,
           intent: 'fallback'
         };
+      }
     }
   }
 
@@ -533,7 +598,7 @@ class ChatbotService {
 
       if (!lowStockItems || lowStockItems.length === 0) {
         return {
-          reply: "✅ **Great news!** All inventory items are currently well above their minimum stock thresholds.",
+          reply: "✅ **All good!** All inventory items are currently well above their minimum stock thresholds.",
           intent: 'inventory.low_stock'
         };
       }
@@ -542,7 +607,7 @@ class ChatbotService {
       lowStockItems.forEach((item, index) => {
         text += `${index + 1}. **${item.name}** (${item.category})\n   • Current Stock: **${item.quantity} ${item.unit || 'units'}** (Threshold: ${item.lowStockLimit})\n   • Location: ${item.location}\n`;
       });
-      text += `\n💡 *Please create a purchase request from the Inventory tab to restock these supplies.*`;
+      text += `\n💡 *You can create a purchase request from the Inventory tab to restock.*`;
 
       return { reply: text, intent: 'inventory.low_stock' };
     } catch (err) {
@@ -605,7 +670,6 @@ class ChatbotService {
 
   async handleCheckItem(message) {
     try {
-      // Find all inventory items and match against message
       const allItems = await Inventory.find();
       if (!allItems || allItems.length === 0) return null;
 
@@ -613,7 +677,6 @@ class ChatbotService {
       const matched = allItems.find(it => lower.includes(it.name.toLowerCase()));
 
       if (!matched) {
-        // If query was specifically asking about item stock, list 3 random/popular items
         if (/stock of|quantity of|how much/i.test(message)) {
           return {
             reply: `I couldn't locate that specific item in the inventory registry. Available items include **${allItems.slice(0, 4).map(i => i.name).join(', ')}**, etc. Check the Inventory tab for the full list.`,
@@ -697,7 +760,6 @@ class ChatbotService {
         };
       }
 
-      // Check students residing in this room
       const students = await User.find({
         roomNumber: { $regex: new RegExp(`^${roomNum}$`, 'i') }
       }).select('name studentId email contact');
@@ -773,7 +835,6 @@ class ChatbotService {
 
   async handleStudentSearch(message) {
     try {
-      // Find any user by name in message
       const words = message.replace(/(find|search|where|is|student|who|room|staying)/gi, '').trim();
       if (!words || words.length < 2) {
         return await this.handleStudentCount();
@@ -867,5 +928,4 @@ class ChatbotService {
   }
 }
 
-// Export a singleton instance
 module.exports = new ChatbotService();
