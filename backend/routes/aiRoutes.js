@@ -171,6 +171,8 @@ router.get('/insights', async (req, res) => {
       message: err.message
     });
   }
+});
+
 // POST /api/ai/chat - Custom Local Node-NLP Hostel Chatbot
 router.post('/chat', async (req, res) => {
   try {
