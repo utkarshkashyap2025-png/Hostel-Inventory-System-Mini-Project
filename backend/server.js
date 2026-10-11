@@ -41,9 +41,12 @@ app.use('/api/stock', stockRoutes);
 app.use('/api/activitylogs', activityLogRoutes);
 app.use('/api/ai', aiRoutes);
 
+const chatbotService = require('./services/chatbotService');
+
 const startServer = async () => {
   try {
     await connectDB();
+    await chatbotService.init();
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

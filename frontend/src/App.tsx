@@ -12,6 +12,7 @@ import { SettingsPage } from './components/SettingsPage';
 import { LoginPage } from './components/LoginPage';
 import { StudentPortal } from './components/StudentPortal';
 import { ToastContainer } from './components/ToastContainer';
+import AIChatbot from './components/AIChatbot';
 import { PageView } from './types';
 
 function AppContent() {
@@ -104,6 +105,7 @@ function AppContent() {
     <>
       {renderLayout()}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <AIChatbot />
     </>
   );
 }

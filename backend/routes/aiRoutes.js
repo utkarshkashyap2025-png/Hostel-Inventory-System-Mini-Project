@@ -3,6 +3,7 @@ const router = express.Router();
 
 const Inventory = require('../models/Inventory');
 const Transaction = require('../models/Transaction');
+const chatbotService = require('../services/chatbotService');
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
@@ -170,16 +171,26 @@ router.get('/insights', async (req, res) => {
       message: err.message
     });
   }
-});
+// POST /api/ai/chat - Custom Local Node-NLP Hostel Chatbot
+router.post('/chat', async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({
+        reply: "Please send a valid message text.",
+        intent: 'invalid_input'
+      });
+    }
 
-const sendMessage = async () => {
-  if (message.toLowerCase().includes("stock")) {
-    setReply("Current stock levels are normal.");
-  } else if (message.toLowerCase().includes("room")) {
-    setReply("2 rooms are currently available.");
-  } else {
-    setReply("AI Assistant is ready to help.");
+    const response = await chatbotService.processMessage(message);
+    res.json(response);
+  } catch (err) {
+    console.error('Chatbot Processing Error:', err);
+    res.status(500).json({
+      reply: "Sorry, I encountered an internal error while looking up that information. Please try again.",
+      error: err.message
+    });
   }
-};
+});
 
 module.exports = router;        
